@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KACOSA · Portal de Aplicaciones</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+  :root{
+    --bg: #14181c;
+    --panel: #1b2126;
+    --panel-alt: #20272d;
+    --border: #2c343b;
+    --border-soft: #262d33;
+    --amber: #f5a623;
+    --amber-dim: #b9791a;
+    --teal: #2dd4bf;
+    --red: #e5484d;
+    --text: #ecebf0;
+    --text-dim: #99a2ab;
+    --text-faint: #5b646d;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(245,166,35,0.06), transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(45,212,191,0.05), transparent 45%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--amber);
+  }
+
+  h1,h2,h3{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height: 100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+  }
+  .login-card{
+    width: 100%;
+    max-width: 420px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-card::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:3px;
+    background: repeating-linear-gradient(135deg, var(--amber) 0 10px, var(--amber-dim) 10px 20px);
+    opacity:0.85;
+  }
+  .login-mark{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 28px;
+  }
+  .login-mark .box-icon{
+    width:36px; height:36px;
+    border:1.5px solid var(--amber);
+    border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--amber);
+    font-size: 16px;
+    flex-shrink:0;
+  }
+  .login-mark span{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight:700;
+    letter-spacing: 0.04em;
+  }
+  .login-mark small{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+    margin-top:2px;
+  }
+  .login-card h1{ font-size: 28px; margin-bottom:8px; }
+  .login-card p{ color: var(--text-dim); font-size: 14.5px; line-height:1.5; margin: 0 0 28px 0; }
+
+  .btn-google{
+    width:100%;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    background: var(--text);
+    color:#14181c;
+    border:none;
+    border-radius:3px;
+    padding: 13px 16px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 14.5px;
+    cursor:pointer;
+    transition: transform .12s ease, background .12s ease;
+  }
+  .btn-google:hover{ background:#fff; transform: translateY(-1px); }
+  .btn-google i{ font-size:16px; color:#4285F4; }
+
+  .login-status{
+    margin-top: 18px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-faint);
+    min-height: 18px;
+  }
+  .login-status.error{ color: var(--red); }
+
+  .login-footer{
+    margin-top: 30px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+    display:flex;
+    justify-content: space-between;
+  }
+
+  /* ---------- APP SHELL ---------- */
+  #app-screen{ display:none; min-height:100vh; }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(27,33,38,0.6);
+    backdrop-filter: blur(6px);
+    position: sticky; top:0; z-index:10;
+  }
+  .topbar .brand{ display:flex; align-items:center; gap:10px; }
+  .topbar .brand .box-icon{
+    width:30px; height:30px;
+    border:1.5px solid var(--amber);
+    border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--amber);
+    font-size: 14px;
+  }
+  .topbar .brand-text{ line-height:1.1; }
+  .topbar .brand-text b{ font-family:'Barlow Condensed'; font-size:19px; letter-spacing:0.03em; }
+  .topbar .brand-text small{ display:block; font-family:'JetBrains Mono'; font-size:9.5px; color:var(--text-faint); letter-spacing:0.1em; }
+
+  .user-chip{
+    display:flex; align-items:center; gap:12px;
+  }
+  .role-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    border: 1px solid rgba(45,212,191,0.35);
+    background: rgba(45,212,191,0.08);
+    padding: 4px 9px;
+    border-radius: 3px;
+  }
+  .user-name{ font-size: 13.5px; color: var(--text-dim); }
+  .logout-btn{
+    background:none;
+    border:1px solid var(--border);
+    color: var(--text-dim);
+    border-radius:3px;
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: border-color .12s ease, color .12s ease;
+  }
+  .logout-btn:hover{ border-color: var(--red); color: var(--red); }
+
+  main{ padding: 36px 32px 60px; max-width: 1180px; margin: 0 auto; }
+
+  .page-head{ margin-bottom: 30px; }
+  .page-head .eyebrow{ margin-bottom:6px; display:block; }
+  .page-head h2{ font-size: 30px; }
+  .page-head p{ color: var(--text-dim); font-size: 14px; margin-top:6px; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
+  .app-card{
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 22px 20px 20px;
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+    text-decoration:none;
+    color: inherit;
+    transition: border-color .15s ease, transform .15s ease, background .15s ease;
+    overflow: hidden;
+  }
+  .app-card::before{
+    /* perforación estilo etiqueta de bodega */
+    content:"";
+    position:absolute;
+    top:16px; left:-7px;
+    width:14px; height:14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+  }
+  .app-card:hover{
+    border-color: var(--amber-dim);
+    background: var(--panel-alt);
+    transform: translateY(-2px);
+  }
+  .app-card .code-tag{
+    position:absolute;
+    top:14px; right:14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+  }
+  .app-card .icon-wrap{
+    width:44px; height:44px;
+    border-radius:3px;
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.25);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--amber);
+    font-size: 19px;
+    margin-left: 10px;
+  }
+  .app-card h3{ font-size: 21px; margin-left:10px; }
+  .app-card p{
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height:1.5;
+    margin: 0 0 4px 10px;
+    flex-grow:1;
+  }
+  .app-card .card-footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-left:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+  }
+  .app-card .card-footer i{ transition: transform .15s ease; }
+  .app-card:hover .card-footer i{ transform: translateX(3px); }
+
+  .category-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color: var(--text-faint);
+    margin-left:10px;
+  }
+
+  .state-box{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .state-box i{ font-size: 30px; color: var(--text-faint); margin-bottom: 14px; display:block; }
+  .state-box h3{ font-size: 20px; color: var(--text); margin-bottom: 6px; }
+  .state-box p{ font-size: 13.5px; max-width: 420px; margin: 0 auto; line-height:1.5; }
+
+  @media (max-width: 640px){
+    .topbar{ padding: 14px 18px; }
+    main{ padding: 26px 18px 50px; }
+    .user-name{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-mark">
+      <div class="box-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+      <div>
+        <span>KACOSA</span>
+        <small>SISTEMA DE GESTIÓN DE INVENTARIOS</small>
+      </div>
+    </div>
+    <h1>Portal de aplicaciones</h1>
+    <p>Inicia sesión con tu cuenta corporativa de Google para acceder a las herramientas asignadas a tu rol.</p>
+    <button class="btn-google" id="btn-login">
+      <i class="fa-brands fa-google"></i>
+      Continuar con Google
+    </button>
+    <div class="login-status" id="login-status"></div>
+    <div class="login-footer">
+      <span>ACCESO-01</span>
+      <span id="login-clock">--:--</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL ===================== -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="brand">
+      <div class="box-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+      <div class="brand-text">
+        <b>KACOSA</b>
+        <small>PORTAL DE APLICACIONES</small>
+      </div>
+    </div>
+    <div class="user-chip">
+      <span class="user-name" id="user-name-label"></span>
+      <span class="role-badge" id="role-badge">ROL</span>
+      <button class="logout-btn" id="btn-logout" title="Cerrar sesión">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+
+  <main>
+    <div class="page-head">
+      <span class="eyebrow" id="fecha-eyebrow">MÓDULOS DISPONIBLES</span>
+      <h2 id="saludo">Panel de acceso</h2>
+      <p>Selecciona una aplicación para continuar.</p>
+    </div>
+
+    <div class="grid" id="apps-grid">
+      <!-- tarjetas generadas dinámicamente -->
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // =========================================================
+  // 1. CONFIGURACIÓN — reemplaza con la de tu proyecto Firebase
+  // =========================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAeXFRdPZsEKX5vcTgGQ5hIOAlJyVv92kQ",
+    authDomain: "portal-kacosa.firebaseapp.com",
+    projectId: "portal-kacosa",
+    storageBucket: "portal-kacosa.firebasestorage.app",
+    messagingSenderId: "350653710617",
+    appId: "1:350653710617:web:d29f757730e4515ec3c588"
+  };
+
+  // Si tu organización usa Google Workspace con dominio propio,
+  // puedes restringir el login solo a ese dominio descomentando
+  // la línea "hd" más abajo.
+  const RESTRICCION_DOMINIO = null; // ej: "kacosa.com"
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  if (RESTRICCION_DOMINIO) provider.setCustomParameters({ hd: RESTRICCION_DOMINIO });
+
+  // Mapa de nombre de icono (guardado en Firestore) -> clase Font Awesome
+  const ICON_MAP = {
+    warehouse: "fa-warehouse",
+    truck: "fa-truck-fast",
+    chart: "fa-chart-line",
+    dashboard: "fa-gauge-high",
+    folder: "fa-folder-tree",
+    boxes: "fa-boxes-stacked",
+    users: "fa-users-gear",
+    trace: "fa-route",
+    default: "fa-cube"
+  };
+
+  const loginScreen = document.getElementById("login-screen");
+  const appScreen = document.getElementById("app-screen");
+  const loginStatus = document.getElementById("login-status");
+  const grid = document.getElementById("apps-grid");
+
+  document.getElementById("btn-login").addEventListener("click", () => {
+    loginStatus.classList.remove("error");
+    loginStatus.textContent = "Conectando…";
+    signInWithPopup(auth, provider).catch(err => {
+      loginStatus.classList.add("error");
+      loginStatus.textContent = "No se pudo iniciar sesión (" + err.code + ")";
+    });
+  });
+
+  document.getElementById("btn-logout").addEventListener("click", () => {
+    signOut(auth);
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      loginScreen.style.display = "flex";
+      appScreen.style.display = "none";
+      return;
+    }
+
+    loginStatus.textContent = "Verificando permisos…";
+
+    // -----------------------------------------------------
+    // 2. BUSCAR EL ROL DEL USUARIO EN FIRESTORE
+    // Colección: usuarios | documento ID = correo del usuario
+    // Campos esperados: { nombre: "...", rol: "supervisor" }
+    // -----------------------------------------------------
+    let perfil = null;
+    try {
+      const refUsuario = doc(db, "usuarios", user.email);
+      const snap = await getDoc(refUsuario);
+      if (snap.exists()) perfil = snap.data();
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (!perfil) {
+      loginStatus.classList.add("error");
+      loginStatus.textContent = "Tu cuenta (" + user.email + ") no tiene acceso configurado. Contacta al administrador.";
+      return;
+    }
+
+    // -----------------------------------------------------
+    // 3. CARGAR APPS PERMITIDAS PARA EL ROL
+    // Colección: apps
+    // Campos esperados: { nombre, descripcion, url, icono, codigo,
+    //                     categoria, rolesPermitidos: ["supervisor", ...], activo }
+    // -----------------------------------------------------
+    let apps = [];
+    try {
+      const snapApps = await getDocs(collection(db, "apps"));
+      snapApps.forEach(d => apps.push({ id: d.id, ...d.data() }));
+    } catch (e) {
+      console.error(e);
+    }
+
+    const rol = perfil.rol || "sin-rol";
+    const esAdmin = rol === "admin";
+    const appsVisibles = apps.filter(a =>
+      a.activo !== false &&
+      (esAdmin ||
+        (Array.isArray(a.rolesPermitidos) &&
+         (a.rolesPermitidos.includes(rol) || a.rolesPermitidos.includes("todos"))))
+    );
+
+    // -----------------------------------------------------
+    // 4. PINTAR EL PANEL
+    // -----------------------------------------------------
+    document.getElementById("user-name-label").textContent = perfil.nombre || user.email;
+    document.getElementById("role-badge").textContent = rol;
+    document.getElementById("saludo").textContent = "Hola, " + (perfil.nombre ? perfil.nombre.split(" ")[0] : "bienvenido");
+
+    const hoy = new Date().toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" });
+    document.getElementById("fecha-eyebrow").textContent = "MÓDULOS DISPONIBLES · " + hoy.toUpperCase();
+
+    renderApps(appsVisibles);
+
+    loginScreen.style.display = "none";
+    appScreen.style.display = "block";
+  });
+
+  function renderApps(apps) {
+    grid.innerHTML = "";
+
+    if (apps.length === 0) {
+      grid.innerHTML = `
+        <div class="state-box" style="grid-column:1/-1;">
+          <i class="fa-solid fa-box-open"></i>
+          <h3>No hay módulos asignados</h3>
+          <p>Tu rol todavía no tiene aplicaciones vinculadas. Solicita al administrador que revise tus permisos en la colección "apps".</p>
+        </div>`;
+      return;
+    }
+
+    apps.forEach(a => {
+      const card = document.createElement("a");
+      card.className = "app-card";
+      card.href = a.url || "#";
+      card.target = a.target === "self" ? "_self" : "_blank";
+      card.rel = "noopener";
+
+      const iconClass = ICON_MAP[a.icono] || ICON_MAP.default;
+
+      card.innerHTML = `
+        <span class="code-tag">${a.codigo || ""}</span>
+        <div class="icon-wrap"><i class="fa-solid ${iconClass}"></i></div>
+        <span class="category-tag">${a.categoria || ""}</span>
+        <h3>${a.nombre || "Sin nombre"}</h3>
+        <p>${a.descripcion || ""}</p>
+        <div class="card-footer">
+          <span>ABRIR MÓDULO</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // reloj simple en la pantalla de login
+  function tick() {
+    const el = document.getElementById("login-clock");
+    if (el) el.textContent = new Date().toLocaleTimeString("es-VE", { hour: "2-digit", minute: "2-digit" });
+  }
+  tick();
+  setInterval(tick, 1000 * 30);
+</script>
+
+</body>
+</html>
