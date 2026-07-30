@@ -757,13 +757,13 @@
         </div>
       `;
 
-      // Ícono: solo muestra imagen si el documento trae logoUrl explícito.
-      // Si no, usa el ícono de Font Awesome del ICON_MAP (más consistente
-      // que depender de favicons automáticos, que muchas veces no existen).
+      // Ícono: usa logoUrl si existe, si no intenta el favicon del sitio,
+      // y si ambos fallan cae al ícono de Font Awesome del ICON_MAP.
       const iconWrap = card.querySelector("[data-icon]");
-      if (a.logoUrl) {
+      const imgSrc = a.logoUrl || faviconUrl(a.url);
+      if (imgSrc) {
         const img = document.createElement("img");
-        img.src = a.logoUrl;
+        img.src = imgSrc;
         img.alt = "";
         img.style.width = "24px";
         img.style.height = "24px";
@@ -776,6 +776,16 @@
 
       grid.appendChild(card);
     });
+  }
+
+  function faviconUrl(url) {
+    try {
+      const u = new URL(url);
+      if (u.protocol.startsWith("http")) {
+        return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=128`;
+      }
+    } catch (e) { /* url inválida o vacía */ }
+    return null;
   }
 
   // reloj simple en la pantalla de login
