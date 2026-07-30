@@ -61,6 +61,13 @@
     justify-content:center;
     padding: 24px;
   }
+  #change-password-screen{
+    display:none;
+    min-height: 100vh;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+  }
   .login-card{
     width: 100%;
     max-width: 420px;
@@ -127,6 +134,78 @@
   }
   .btn-google:hover{ background:#fff; transform: translateY(-1px); }
   .btn-google i{ font-size:16px; color:#4285F4; }
+
+  .divider{
+    display:flex; align-items:center; gap:12px;
+    margin: 20px 0 18px;
+    color: var(--text-faint);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing:0.1em;
+  }
+  .divider::before, .divider::after{
+    content:""; flex:1; height:1px; background: var(--border);
+  }
+
+  .email-form{ display:flex; flex-direction:column; gap:10px; }
+  .text-input{
+    width:100%;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 3px;
+    padding: 12px 14px;
+    font-family:'Inter', sans-serif;
+    font-size: 14px;
+  }
+  .text-input:focus{
+    outline:none;
+    border-color: var(--amber-dim);
+  }
+  .text-input::placeholder{ color: var(--text-faint); }
+
+  .password-wrap{ position: relative; width:100%; }
+  .password-wrap .text-input{ padding-right: 42px; }
+  .toggle-eye{
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    width: 30px; height: 30px;
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 14px;
+    transition: color .12s ease;
+  }
+  .toggle-eye:hover{ color: var(--amber); }
+
+  .btn-email{
+    width:100%;
+    background: transparent;
+    color: var(--amber);
+    border: 1px solid var(--amber-dim);
+    border-radius: 3px;
+    padding: 12px 16px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 14px;
+    cursor:pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .btn-email:hover{ background: var(--amber); color:#14181c; }
+
+  .toggle-mode{
+    text-align:center;
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+  .toggle-mode a{ color: var(--teal); text-decoration:none; font-weight:600; }
+  .toggle-mode a:hover{ text-decoration:underline; }
 
   .login-status{
     margin-top: 18px;
@@ -324,11 +403,50 @@
       <i class="fa-brands fa-google"></i>
       Continuar con Google
     </button>
+
+    <div class="divider"><span>o</span></div>
+
+    <form id="email-form" class="email-form">
+      <input type="email" id="email-input" class="text-input" placeholder="Correo" autocomplete="email" maxlength="50" required>
+      <div class="password-wrap">
+        <input type="password" id="password-input" class="text-input" placeholder="Contraseña" autocomplete="current-password" maxlength="20" required>
+        <button type="button" class="toggle-eye" data-target="password-input"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <button type="submit" class="btn-email" id="btn-email-submit">Iniciar sesión</button>
+    </form>
+
     <div class="login-status" id="login-status"></div>
     <div class="login-footer">
       <span>ACCESO-01</span>
       <span id="login-clock">--:--</span>
     </div>
+  </div>
+</div>
+
+<!-- ===================== CAMBIO DE CONTRASEÑA OBLIGATORIO ===================== -->
+<div id="change-password-screen">
+  <div class="login-card">
+    <div class="login-mark">
+      <div class="box-icon"><i class="fa-solid fa-key"></i></div>
+      <div>
+        <span>KACOSA</span>
+        <small>PRIMER INGRESO</small>
+      </div>
+    </div>
+    <h1>Crea tu contraseña</h1>
+    <p>Por seguridad, define una contraseña nueva antes de continuar. Debe ser alfanumérica (solo letras y números, sin símbolos) y de máximo 20 caracteres.</p>
+    <form id="change-password-form" class="email-form">
+      <div class="password-wrap">
+        <input type="password" id="new-password-input" class="text-input" placeholder="Nueva contraseña" maxlength="20" pattern="[A-Za-z0-9]{1,20}" required>
+        <button type="button" class="toggle-eye" data-target="new-password-input"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <div class="password-wrap">
+        <input type="password" id="confirm-password-input" class="text-input" placeholder="Confirmar contraseña" maxlength="20" pattern="[A-Za-z0-9]{1,20}" required>
+        <button type="button" class="toggle-eye" data-target="confirm-password-input"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <button type="submit" class="btn-email" id="btn-change-password">Guardar y continuar</button>
+    </form>
+    <div class="login-status" id="change-password-status"></div>
   </div>
 </div>
 
@@ -367,10 +485,11 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+    signInWithEmailAndPassword, updatePassword
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, collection, getDocs
+    getFirestore, doc, getDoc, updateDoc, collection, getDocs
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   // =========================================================
@@ -427,6 +546,85 @@
     signOut(auth);
   });
 
+  // ---- Mostrar / ocultar contraseña (aplica a los 3 campos de contraseña) ----
+  document.querySelectorAll(".toggle-eye").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = document.getElementById(btn.dataset.target);
+      const icon = btn.querySelector("i");
+      const oculto = target.type === "password";
+      target.type = oculto ? "text" : "password";
+      icon.classList.toggle("fa-eye", !oculto);
+      icon.classList.toggle("fa-eye-slash", oculto);
+    });
+  });
+
+  // ---- Login con correo y contraseña (las cuentas las crea el administrador) ----
+  const emailForm = document.getElementById("email-form");
+  const emailInput = document.getElementById("email-input");
+  const passwordInput = document.getElementById("password-input");
+
+  emailForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    const pass = passwordInput.value;
+    loginStatus.classList.remove("error");
+    loginStatus.textContent = "Conectando…";
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+      loginStatus.classList.add("error");
+      loginStatus.textContent = mensajeError(err.code);
+    }
+  });
+
+  function mensajeError(code) {
+    const map = {
+      "auth/wrong-password": "Contraseña incorrecta.",
+      "auth/user-not-found": "No existe una cuenta con ese correo.",
+      "auth/invalid-email": "El correo no es válido.",
+      "auth/invalid-credential": "Correo o contraseña incorrectos.",
+      "auth/missing-password": "Escribe tu contraseña.",
+      "auth/too-many-requests": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."
+    };
+    return map[code] || ("No se pudo completar (" + code + ")");
+  }
+
+  // ---- Cambio de contraseña obligatorio en el primer ingreso ----
+  const changePasswordScreen = document.getElementById("change-password-screen");
+  const changePasswordForm = document.getElementById("change-password-form");
+  const newPasswordInput = document.getElementById("new-password-input");
+  const confirmPasswordInput = document.getElementById("confirm-password-input");
+  const changePasswordStatus = document.getElementById("change-password-status");
+  const ALFANUMERICO = /^[A-Za-z0-9]+$/;
+
+  changePasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const p1 = newPasswordInput.value;
+    const p2 = confirmPasswordInput.value;
+    changePasswordStatus.classList.remove("error");
+
+    if (!ALFANUMERICO.test(p1) || p1.length > 20) {
+      changePasswordStatus.classList.add("error");
+      changePasswordStatus.textContent = "Debe ser alfanumérica (sin símbolos ni espacios) y de máximo 20 caracteres.";
+      return;
+    }
+    if (p1 !== p2) {
+      changePasswordStatus.classList.add("error");
+      changePasswordStatus.textContent = "Las contraseñas no coinciden.";
+      return;
+    }
+
+    changePasswordStatus.textContent = "Guardando…";
+    try {
+      await updatePassword(auth.currentUser, p1);
+      await updateDoc(doc(db, "usuarios", auth.currentUser.email), { passwordTemporal: false });
+      location.reload();
+    } catch (err) {
+      changePasswordStatus.classList.add("error");
+      changePasswordStatus.textContent = "No se pudo actualizar (" + err.code + "). Vuelve a iniciar sesión e inténtalo de nuevo.";
+    }
+  });
+
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       loginScreen.style.display = "flex";
@@ -455,6 +653,16 @@
       loginStatus.textContent = "Tu cuenta (" + user.email + ") no tiene acceso configurado. Contacta al administrador.";
       return;
     }
+
+    // Si la cuenta fue creada por el administrador con contraseña temporal,
+    // se obliga a definir una contraseña propia antes de continuar.
+    if (perfil.passwordTemporal === true) {
+      loginScreen.style.display = "none";
+      appScreen.style.display = "none";
+      changePasswordScreen.style.display = "flex";
+      return;
+    }
+    changePasswordScreen.style.display = "none";
 
     // -----------------------------------------------------
     // 3. CARGAR APPS PERMITIDAS PARA EL ROL
@@ -519,7 +727,7 @@
 
       card.innerHTML = `
         <span class="code-tag">${a.codigo || ""}</span>
-        <div class="icon-wrap"><i class="fa-solid ${iconClass}"></i></div>
+        <div class="icon-wrap" data-icon></div>
         <span class="category-tag">${a.categoria || ""}</span>
         <h3>${a.nombre || "Sin nombre"}</h3>
         <p>${a.descripcion || ""}</p>
@@ -528,8 +736,36 @@
           <i class="fa-solid fa-arrow-right"></i>
         </div>
       `;
+
+      // Ícono: usa logoUrl si existe, si no intenta el favicon del sitio,
+      // y si ambos fallan cae al ícono de Font Awesome del ICON_MAP.
+      const iconWrap = card.querySelector("[data-icon]");
+      const imgSrc = a.logoUrl || faviconUrl(a.url);
+      if (imgSrc) {
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.alt = "";
+        img.style.width = "24px";
+        img.style.height = "24px";
+        img.style.objectFit = "contain";
+        img.onerror = () => { iconWrap.innerHTML = `<i class="fa-solid ${iconClass}"></i>`; };
+        iconWrap.appendChild(img);
+      } else {
+        iconWrap.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+      }
+
       grid.appendChild(card);
     });
+  }
+
+  function faviconUrl(url) {
+    try {
+      const u = new URL(url);
+      if (u.protocol.startsWith("http")) {
+        return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=128`;
+      }
+    } catch (e) { /* url inválida o vacía */ }
+    return null;
   }
 
   // reloj simple en la pantalla de login
