@@ -486,7 +486,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
-    signInWithEmailAndPassword, updatePassword
+    signInWithEmailAndPassword, updatePassword, EmailAuthProvider, reauthenticateWithCredential
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, updateDoc, collection, getDocs
@@ -612,6 +612,26 @@
       changePasswordStatus.classList.add("error");
       changePasswordStatus.textContent = "Las contraseñas no coinciden.";
       return;
+    }
+
+    changePasswordStatus.textContent = "Verificando…";
+
+    // Comprobación: si "reautenticar" con la contraseña nueva funciona,
+    // significa que es igual a la contraseña actual (la temporal) -> se rechaza.
+    try {
+      const cred = EmailAuthProvider.credential(auth.currentUser.email, p1);
+      await reauthenticateWithCredential(auth.currentUser, cred);
+      changePasswordStatus.classList.add("error");
+      changePasswordStatus.textContent = "La nueva contraseña no puede ser igual a la temporal. Elige una diferente.";
+      return;
+    } catch (err) {
+      const codigosEsperados = ["auth/wrong-password", "auth/invalid-credential", "auth/user-mismatch"];
+      if (!codigosEsperados.includes(err.code)) {
+        changePasswordStatus.classList.add("error");
+        changePasswordStatus.textContent = "No se pudo validar la contraseña (" + err.code + "). Intenta de nuevo.";
+        return;
+      }
+      // wrong-password / invalid-credential aquí es la señal correcta: la nueva SÍ es diferente a la actual.
     }
 
     changePasswordStatus.textContent = "Guardando…";
